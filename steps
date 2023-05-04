@@ -1,0 +1,22 @@
+1. npm init -y
+2. install dependencies in root folder
+3. create gitignore file
+4. in package.json add start script for nodemon. This makes it so we can run server with our cd into the other directory.
+5. complete steps to set up express in server.js
+6. create .env file in root directory with default port and environment variables.
+7. create a new folder in backend folder with a file lablelled routes. Here is where we can define all the request to our server/database.
+8. create a controller folder in the backend folder. Here we can create the request functions, that we'll pass into the routes folder.
+this is done to help scale an applocation. Make sure to keep note on what they all do.
+9. create a error middleware file in a new middleware folder. Here is where addtional error messages will be created (500 status), 
+and import it into the main server file. This makes it so it will catch all related status errors.
+10. Create MongoDB database, add given URL to the .env file, create a new folder in backend called config, with a file called db to connect to it.
+11. create a folder called model, with a ToDo file. Here is where we'll define the ToDo Schema to then be imported and futher defined in controllers.
+12. in controllers define all the kinds of HTTP request to make a crud application.
+13. Here is where we starts dealing with authentication. First start by creating a file in the models folder called userModels.js . Here you'll create the models for the users, (as in in they need to enter a password/email).
+14. since each ToDo list will be associated with a particular user we actually want to import the user model into the toDo model file.
+15. create a userRoutes file in the routes folder. define / use it in the server file so that it will run. Here is where we'll call the user related function (like they're creation), once the /api/user api is called a fowarded to this file.
+16. create a userController file and the user related function like they're creating/authenticate/info fetch. This would have been exported to the userRoutes file where it will be used. These functions will be futher defined along the way as they will get more complicated as in needing async/await syntax, verfiying the existence of the user etc.. 
+17. in order to create our register user function we first need to install a package to encrypt their JSON token: npm i bcryptjs, jsonwebtoken. Then we can import and define the reigsterUser function in the userController file.
+18. continue to build upon the register user POST function. First it needs to check if the fields have been properly filled out, then to verify if the user already exist in the database, establish a salt function and encrypt the users entered password, create the user variables to be saved to mongoDB, create a function to verify that that user data has been saved to the database correctly.
+19. To continue work of the JSON token we start by creating a secret in the .env file to anything, restart the server, create a new function in the userControllers to generate a JSON token, pass that function into the the authenticate user function and the login function so that a token in created/stored to mongo on the creation of a new user, lastly create a function to create a random secret every time a token in created and pass it into the create user function.
+20. Protect the getMe routes, this is done so not everyone can retrieve information. Start by creating a file in the middleware folder called authMiddleware, 
