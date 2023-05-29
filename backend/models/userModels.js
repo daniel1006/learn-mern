@@ -15,6 +15,9 @@ const userSchema = mongoose.Schema({ // takes same format as other models
         type: String,
         required: true, 
     },
+    secret: {
+        type: String,
+    },
 },
 {
     timeStamps: true

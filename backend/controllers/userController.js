@@ -1,27 +1,21 @@
 const jwt = require('jsonwebtoken')
+const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs') // used to encrypt the jstoken
 const crypto = require('crypto');
-const dotenv = require('dotenv');
 const User = require('../models/userModels') // we're calling it 
 
+const userSecret = crypto.randomBytes(32).toString('hex'); // encrpyts / randomizes the secrect of a size of 32 bytes.
 
 // creates a new user
 // uses POST request to /api/users
 // is a Public request
-const registerUser = async (req, res) => {
-    const { name, email, password } = await req.body // This is used to detructure the data we receive whene the user enters stuff in into bits of info
+const registerUser = asyncHandler(async (req, res) => {
+    const { name, email, password } = req.body // This is used to detructure the data we receive whene the user enters stuff in into bits of info
                                                     // the code will recognize
-    generateSecret();
 
-try {
     if (!name || !email || !password) {  // Verifiest that all the fields have been entered by the user.
         throw new Error('Please enter all fields')
     }
-
-}
-catch(error){
-    res.status(400).json({ error: error.message }); // this is what will catch the errors
-}
 
 const userExist = await User.findOne({ email }) // This checks the database to check if a user based of its ID already exist. It is found by the findOne function
 if (userExist) {
@@ -29,27 +23,30 @@ if (userExist) {
     throw new Error('this user already exist')
 }
 
+//generateSecret;
 const salt = await bcrypt.genSalt(10) // # of digits to add to password
 const hashedPassword = await bcrypt.hash(password, salt) // encryting password with random salt digits.
 
 const user = await User.create ({ // the create function is what saves data to mongoDB
     name,
     email,
-    password: hashedPassword // assigning the encryted passwords as the users password to the database.
+    password: hashedPassword, // assigning the encryted passwords as the users password to the database.
+    secret: userSecret
 })
+
 
 if(user) {
     res.status(201).json({
         _id: user.id, // verifies that our fields of id,user,password have been saved under those same variables in mongoDB
         name: user.name,
         email: user.email,
-        token: generateToken(user._id)
+        token: generateToken(user._id, userSecret)
     })
 } else {
     res.status(400)
     throw new Error('Invalid user data')
 }
-}
+})
 
 
 
@@ -69,8 +66,9 @@ try {
           _id: user.id, // returns user data on a success
           name: user.name,
           email: user.email,
-          token: generateToken(user._id)
-    })                                                                  
+          token: generateToken(user._id, user.secret)
+    });
+    process.env.JWT_SECRET = user.secret;  // Stores the specific users secret in the env file whose JWT_SECRET varible holds an empty string.                    
 }  else {
     res.status(400)
     throw new Error('Invalid credentials')
@@ -88,25 +86,22 @@ catch(error) {
 // uses a GET request to /api/users/me       :me stands for the current logged in user
 // is a Private request
 const getMe = async (req, res) => {
-    res.json({ message: 'user data displayed' })
-}
-
-
-// Generate a random secret fo JWT token
-const generateSecret = () => {
-    const secret = crypto.randomBytes(32).toString('hex');
-
-    dotenv.config(); // Store the secret in an environment variable
-    process.env.JWT_SECRET = secret;
+    const { _id, name, email } = await User.findById(req.user.id)
+    res.status(200).json ({
+        id: _id,
+        name,
+        email
+    })
 }
 
 // Generaate JWT token
-const generateToken = (id) => {
-    return jwt.sign({ id }, process.env.JWT_SECRET, {  // sign holds a string of data use to build the token which is comprised of the ID, and secret
+const generateToken = (id, secret) => {
+    return jwt.sign({ id },  secret, {  // sign holds a string of data use to build the token which is comprised of the ID, and secret
         expiresIn: '30d', // token created here will expire in set amount of time
+        
     })
 }
 
 module.exports = {
-    registerUser, loginUser, getMe
+    registerUser, loginUser, getMe, 
 }
